@@ -763,17 +763,40 @@ void main(){
   requestAnimationFrame(render);
 })();
 
-function handleSubmit() {
+async function handleSubmit() {
   const input = document.getElementById("emailInput");
+  const btn   = document.getElementById("submitBtn");
   const email = input.value.trim();
+
   if (!email || !email.includes("@")) {
     input.focus();
     input.style.borderColor = "rgba(255,100,100,0.7)";
     setTimeout(() => { input.style.borderColor = ""; }, 1500);
     return;
   }
-  document.getElementById("formArea").style.display = "none";
-  document.getElementById("successMsg").style.display = "block";
+
+  btn.textContent = "送信中…";
+  btn.disabled = true;
+
+  try {
+    const res = await fetch("/api/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    });
+
+    if (res.ok) {
+      document.getElementById("formArea").style.display = "none";
+      document.getElementById("successMsg").style.display = "block";
+    } else {
+      btn.textContent = "エラーが発生しました。もう一度お試しください";
+      btn.style.background = "rgba(200,60,60,0.8)";
+      btn.disabled = false;
+    }
+  } catch {
+    btn.textContent = "登録する →";
+    btn.disabled = false;
+  }
 }
 
 // Enter key support
