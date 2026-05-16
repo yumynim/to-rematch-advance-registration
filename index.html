@@ -444,20 +444,21 @@ void main(){
   float n = fbm(q*1.1 + vec2(t*0.7, 0.0));
   float bands = 0.5 + 0.5*sin(p.y*2.4 + n*5.5 + u_time*0.35);
 
-  vec3 cA = vec3(0.06, 0.10, 0.32);
-  vec3 cB = vec3(0.42, 0.18, 0.78);
-  vec3 cC = vec3(0.10, 0.80, 0.74);
-  vec3 cD = vec3(0.95, 0.55, 0.85);
+  // icon palette: #0f0c29 → #1a1750 → #6366f1 → #4338ca
+  vec3 cA = vec3(0.06, 0.05, 0.16);   // deep navy (#0f0c29)
+  vec3 cB = vec3(0.39, 0.40, 0.95);   // bright indigo (#6366f1)
+  vec3 cC = vec3(0.28, 0.30, 0.80);   // mid indigo (#4338ca blended)
+  vec3 cD = vec3(0.60, 0.65, 1.00);   // periwinkle highlight
 
   vec3 col = mix(cA, cB, smoothstep(0.2, 0.85, n));
   col = mix(col, cC, smoothstep(0.45, 0.95, bands)*0.7);
-  col = mix(col, cD, smoothstep(0.85, 1.0, n*bands)*0.6);
+  col = mix(col, cD, smoothstep(0.85, 1.0, n*bands)*0.5);
 
   float shimmer = fbm(q*6.0 + u_time*0.6);
-  col += 0.10*shimmer*vec3(0.8, 0.95, 1.0);
+  col += 0.08*shimmer*vec3(0.75, 0.80, 1.0);
 
   float md = length(p - m);
-  col += 0.35 * exp(-md*2.5) * vec3(0.85, 0.95, 1.0);
+  col += 0.30 * exp(-md*2.5) * vec3(0.70, 0.75, 1.0);
 
   float vlen = clamp(length(u_mouseVel)*8.0, 0.0, 1.0);
   col += vlen * 0.10 * vec3(0.7, 0.85, 1.0) * exp(-md*1.5);
