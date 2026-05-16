@@ -311,6 +311,39 @@
     letter-spacing: 0.04em;
   }
 
+  /* ── Falling cubes ── */
+  #cubes-layer {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    overflow: hidden;
+  }
+
+  @keyframes cube-rain {
+    0%    { transform: translateY(-130vh); opacity: 0; }
+    3%    {                               opacity: 0.65; }
+    31%   { transform: translateY(5px);   opacity: 0.55; }
+    34%   { transform: translateY(-8px); }
+    37%   { transform: translateY(0);    opacity: 0.45; }
+    41%   {                              opacity: 0.45; }
+    44%   { transform: translateY(0);    opacity: 0; }
+    100%  { transform: translateY(0);    opacity: 0; }
+  }
+
+  .cube-wrap {
+    position: absolute;
+    top: 0;
+  }
+
+  .cube-inner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.55);
+  }
+
   /* ── Responsive ── */
   @media (max-width: 500px) {
     .input-row {
@@ -328,6 +361,51 @@
 <body>
 
 <canvas id="gl"></canvas>
+
+<!-- アイコン定義（全キューブで共有） -->
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true">
+  <defs>
+    <linearGradient id="ic-bg" x1="20%" y1="0%" x2="80%" y2="100%">
+      <stop offset="0%"   stop-color="#0f0c29"/>
+      <stop offset="60%"  stop-color="#1a1750"/>
+      <stop offset="100%" stop-color="#2a2770"/>
+    </linearGradient>
+    <radialGradient id="ic-glow" cx="50%" cy="62%" r="55%">
+      <stop offset="0%"   stop-color="#4338ca" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="#4338ca" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="ic-c1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"   stop-color="#4f46e5"/>
+      <stop offset="100%" stop-color="#312e81"/>
+    </linearGradient>
+    <linearGradient id="ic-c2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"   stop-color="#6366f1"/>
+      <stop offset="100%" stop-color="#4338ca"/>
+    </linearGradient>
+    <symbol id="tm-icon" viewBox="0 0 180 180">
+      <rect width="180" height="180" rx="40" fill="url(#ic-bg)"/>
+      <rect width="180" height="180" rx="40" fill="url(#ic-glow)"/>
+      <circle cx="158" cy="22" r="72" fill="none" stroke="white" stroke-width="1" opacity="0.04"/>
+      <circle cx="158" cy="22" r="50" fill="none" stroke="white" stroke-width="1" opacity="0.04"/>
+      <rect x="24" y="28" width="132" height="22" rx="7" fill="white"/>
+      <rect x="75" y="38" width="30" height="56" rx="7" fill="white"/>
+      <g transform="rotate(-12, 72, 126)">
+        <rect x="26" y="104" width="92" height="124" rx="13" fill="url(#ic-c1)"/>
+        <rect x="40" y="120" width="64" height="4"   rx="2" fill="white" opacity="0.25"/>
+        <rect x="40" y="130" width="48" height="3.5" rx="1.75" fill="white" opacity="0.17"/>
+        <rect x="40" y="139" width="54" height="3.5" rx="1.75" fill="white" opacity="0.12"/>
+      </g>
+      <g transform="rotate(12, 108, 126)">
+        <rect x="62" y="104" width="92" height="124" rx="13" fill="url(#ic-c2)"/>
+        <rect x="76" y="120" width="64" height="4"   rx="2" fill="white" opacity="0.28"/>
+        <rect x="76" y="130" width="48" height="3.5" rx="1.75" fill="white" opacity="0.18"/>
+        <rect x="76" y="139" width="54" height="3.5" rx="1.75" fill="white" opacity="0.13"/>
+      </g>
+    </symbol>
+  </defs>
+</svg>
+
+<div id="cubes-layer"></div>
 
 <nav>
   <a href="#" class="nav-logo">トレ<span>マッチ</span></a>
@@ -624,6 +702,72 @@ document.addEventListener("DOMContentLoaded", () => {
     if (e.key === "Enter") handleSubmit();
   });
 });
+
+// ── Falling cubes (FallingCubesBackground 移植) ──
+(() => {
+  const TOTAL_DUR = 11;
+  const ACTIVE_S  = 5.0;
+  const COUNT     = 60;
+
+  function seededRand(seed) {
+    let s = seed;
+    return () => {
+      s = (s * 16807) % 2147483647;
+      return (s - 1) / 2147483646;
+    };
+  }
+
+  const rand = seededRand(77);
+  const layer = document.getElementById("cubes-layer");
+
+  for (let i = 0; i < COUNT; i++) {
+    const col   = i % 12;
+    const x     = (col / 12) * 100 + rand() * (100 / 12) * 0.85;
+    const size  = 42 + Math.floor(rand() * 28);
+    const delay = rand() * ACTIVE_S;
+    const landY = 35 + rand() * 58;
+    const rz    = (rand() - 0.5) * 24;
+    const rx    = 10 + rand() * 10;
+
+    const wrap = document.createElement("div");
+    wrap.className = "cube-wrap";
+    wrap.style.cssText = `
+      left: ${x}%;
+      top: ${landY}%;
+      animation: cube-rain ${TOTAL_DUR}s cubic-bezier(0.5,0,0.82,0.6) ${delay}s infinite both;
+    `;
+
+    const inner = document.createElement("div");
+    inner.className = "cube-inner";
+    inner.style.cssText = `
+      width: ${size}px;
+      height: ${size}px;
+      transform: rotateX(${rx}deg) rotateZ(${rz}deg);
+      border-radius: ${Math.round(size * 0.22)}px;
+    `;
+
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.setAttribute("width", size * 0.76);
+    svg.setAttribute("height", size * 0.76);
+    svg.setAttribute("viewBox", "0 0 180 180");
+    const use = document.createElementNS("http://www.w3.org/2000/svg", "use");
+    use.setAttribute("href", "#tm-icon");
+    svg.appendChild(use);
+
+    inner.appendChild(svg);
+    wrap.appendChild(inner);
+    layer.appendChild(wrap);
+  }
+
+  // 画面外に出たら一時停止
+  const obs = new IntersectionObserver(([entry]) => {
+    const state = entry.isIntersecting ? "running" : "paused";
+    layer.querySelectorAll(".cube-wrap").forEach(el => {
+      el.style.animationPlayState = state;
+    });
+  }, { threshold: 0 });
+  obs.observe(layer);
+})();
 </script>
 </body>
 </html>
