@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>トレマッチ — 先行登録</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    height: 100%;
+    background: #050507;
+    overflow-x: hidden;
+    font-family: 'Noto Sans JP', sans-serif;
+    color: #fff;
+  }
+
+  /* ── Shader canvas ── */
+  #gl {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    display: block;
+    touch-action: none;
+    z-index: 0;
+  }
+
+  /* ── Layout ── */
+  .page {
+    position: relative;
+    z-index: 1;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 80px 24px 60px;
+  }
+
+  /* ── Nav ── */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 32px;
+    height: 60px;
+    background: rgba(5, 5, 7, 0.30);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+  }
+
+  .nav-logo {
+    font-family: 'Inter', sans-serif;
+    font-size: 18px;
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    color: #fff;
+    text-decoration: none;
+  }
+
+  .nav-logo span {
+    color: rgba(160, 130, 255, 0.9);
+  }
+
+  .nav-badge {
+    font-size: 11px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.5);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-family: 'Inter', sans-serif;
+  }
+
+  /* ── Hero ── */
+  .hero {
+    max-width: 680px;
+    width: 100%;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+  }
+
+  /* pill badge */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.14);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    color: rgba(200, 180, 255, 0.9);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 6px 16px;
+    border-radius: 100px;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    font-family: 'Inter', sans-serif;
+    margin-bottom: 32px;
+  }
+
+  .badge-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: rgba(160, 130, 255, 1);
+    box-shadow: 0 0 8px rgba(160, 130, 255, 0.9);
+    animation: blink 2s ease-in-out infinite;
+    flex-shrink: 0;
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  /* logo */
+  .logo {
+    font-family: 'Inter', sans-serif;
+    font-size: clamp(52px, 12vw, 96px);
+    font-weight: 900;
+    letter-spacing: -0.04em;
+    line-height: 1;
+    margin-bottom: 20px;
+    background: linear-gradient(135deg, #fff 0%, rgba(200,180,255,0.9) 50%, rgba(100,200,230,0.8) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .tagline {
+    font-size: clamp(15px, 2.5vw, 20px);
+    font-weight: 400;
+    color: rgba(255,255,255,0.65);
+    line-height: 1.7;
+    margin-bottom: 12px;
+    letter-spacing: 0.02em;
+  }
+
+  .tagline strong {
+    color: rgba(255,255,255,0.9);
+    font-weight: 700;
+  }
+
+  .sub {
+    font-size: 13px;
+    color: rgba(255,255,255,0.38);
+    line-height: 1.8;
+    margin-bottom: 48px;
+    letter-spacing: 0.02em;
+  }
+
+  /* ── Glass card ── */
+  .glass-card {
+    width: 100%;
+    max-width: 520px;
+    background: rgba(255,255,255,0.055);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 20px;
+    backdrop-filter: blur(24px) saturate(140%);
+    -webkit-backdrop-filter: blur(24px) saturate(140%);
+    padding: 32px 28px;
+    box-shadow:
+      0 24px 64px -16px rgba(0,0,0,0.6),
+      inset 0 1px 0 rgba(255,255,255,0.08);
+  }
+
+  .card-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.45);
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    font-family: 'Inter', sans-serif;
+    margin-bottom: 16px;
+    text-align: left;
+  }
+
+  .input-row {
+    display: flex;
+    gap: 10px;
+  }
+
+  .input-email {
+    flex: 1;
+    height: 50px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 10px;
+    padding: 0 16px;
+    font-size: 14px;
+    font-family: 'Noto Sans JP', sans-serif;
+    color: #fff;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .input-email::placeholder {
+    color: rgba(255,255,255,0.28);
+  }
+
+  .input-email:focus {
+    border-color: rgba(160,130,255,0.6);
+    box-shadow: 0 0 0 3px rgba(160,130,255,0.12);
+  }
+
+  .btn-register {
+    height: 50px;
+    padding: 0 24px;
+    background: linear-gradient(135deg, rgba(120,90,255,0.9) 0%, rgba(80,160,220,0.85) 100%);
+    border: none;
+    border-radius: 10px;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 700;
+    font-family: 'Noto Sans JP', sans-serif;
+    cursor: pointer;
+    white-space: nowrap;
+    letter-spacing: 0.04em;
+    transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s;
+    box-shadow: 0 4px 20px rgba(100,80,220,0.4);
+  }
+
+  .btn-register:hover {
+    opacity: 0.92;
+    transform: translateY(-1px);
+    box-shadow: 0 8px 28px rgba(100,80,220,0.55);
+  }
+
+  .btn-register:active {
+    transform: translateY(0);
+  }
+
+  .card-note {
+    font-size: 11px;
+    color: rgba(255,255,255,0.28);
+    text-align: center;
+    margin-top: 14px;
+    letter-spacing: 0.02em;
+    line-height: 1.7;
+  }
+
+  /* success state */
+  .success-msg {
+    display: none;
+    text-align: center;
+    padding: 8px 0;
+  }
+
+  .success-msg .check {
+    font-size: 36px;
+    margin-bottom: 8px;
+  }
+
+  .success-msg p {
+    font-size: 15px;
+    color: rgba(255,255,255,0.8);
+    line-height: 1.7;
+  }
+
+  /* ── Footer area ── */
+  .hero-footer {
+    margin-top: 48px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .stat-row {
+    display: flex;
+    gap: 40px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .stat {
+    text-align: center;
+  }
+
+  .stat-num {
+    font-family: 'Inter', sans-serif;
+    font-size: 24px;
+    font-weight: 900;
+    color: rgba(255,255,255,0.9);
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+
+  .stat-num span {
+    font-size: 13px;
+    font-weight: 600;
+    color: rgba(160,130,255,0.9);
+  }
+
+  .stat-label {
+    font-size: 11px;
+    color: rgba(255,255,255,0.35);
+    margin-top: 5px;
+    letter-spacing: 0.04em;
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 500px) {
+    .input-row {
+      flex-direction: column;
+    }
+
+    .btn-register {
+      width: 100%;
+    }
+
+    nav { padding: 0 20px; }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="gl"></canvas>
+
+<nav>
+  <a href="#" class="nav-logo">トレ<span>マッチ</span></a>
+  <span class="nav-badge">Coming Soon</span>
+</nav>
+
+<div class="page">
+  <div class="hero">
+    <div class="badge">
+      <span class="badge-dot"></span>
+      先行登録受付中
+    </div>
+
+    <div class="logo">トレマッチ</div>
+
+    <p class="tagline">
+      <strong>欲しいものと、あげたいものが出会う。</strong><br>
+      新感覚の物々交換マッチングサービス
+    </p>
+    <p class="sub">
+      お金を使わずに、モノとモノを交換する新しい体験。<br>
+      リリースに先駆けて先行登録すると、優先招待&amp;特典をお届けします。
+    </p>
+
+    <div class="glass-card">
+      <div id="formArea">
+        <p class="card-label">メールアドレスで先行登録</p>
+        <div class="input-row">
+          <input
+            class="input-email"
+            id="emailInput"
+            type="email"
+            placeholder="your@email.com"
+            autocomplete="email"
+          />
+          <button class="btn-register" id="submitBtn" onclick="handleSubmit()">
+            登録する →
+          </button>
+        </div>
+        <p class="card-note">
+          スパムは送りません。登録解除はいつでも可能です。
+        </p>
+      </div>
+
+      <div class="success-msg" id="successMsg">
+        <div class="check">✅</div>
+        <p>登録完了！<br>リリース時に真っ先にお知らせします。</p>
+      </div>
+    </div>
+
+    <div class="hero-footer">
+      <div class="stat-row">
+        <div class="stat">
+          <div class="stat-num">0 <span>→ ∞</span></div>
+          <div class="stat-label">円で交換できる</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num">先着<span>限定</span></div>
+          <div class="stat-label">特典付き先行招待</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num">2026<span>年</span></div>
+          <div class="stat-label">リリース予定</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Aurora Veil Vertex Shader -->
+<script id="vs" type="x-shader/x-vertex">
+attribute vec2 a_pos;
+void main() {
+  gl_Position = vec4(a_pos, 0.0, 1.0);
+}
+</script>
+
+<!-- Aurora Veil Fragment Shader -->
+<script id="fs" type="x-shader/x-fragment">
+precision highp float;
+uniform vec2  u_res;
+uniform vec2  u_mouse;
+uniform vec2  u_mouseVel;
+uniform float u_time;
+uniform vec4  u_clicks[8];
+
+float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+float noise(vec2 p){
+  vec2 i=floor(p), f=fract(p);
+  vec2 u=f*f*(3.0-2.0*f);
+  return mix(mix(hash(i),hash(i+vec2(1,0)),u.x),
+             mix(hash(i+vec2(0,1)),hash(i+vec2(1,1)),u.x),u.y);
+}
+float fbm(vec2 p){
+  float a=0.5,s=0.0;
+  for(int i=0;i<5;i++){ s+=a*noise(p); p=p*2.02+vec2(1.7); a*=0.5; }
+  return s;
+}
+
+void main(){
+  vec2 uv = gl_FragCoord.xy / u_res.xy;
+  vec2 p  = uv*2.0 - 1.0;
+  p.x *= u_res.x/u_res.y;
+
+  vec2 m = u_mouse*2.0 - 1.0;
+  m.x *= u_res.x/u_res.y;
+
+  vec2 toM = (m - p) * 0.15;
+  vec2 q = p + toM;
+  float t = u_time*0.10;
+  q += 0.55*vec2(fbm(p*1.2 + t), fbm(p*1.2 + vec2(3.7) - t));
+  q += 0.30*vec2(fbm(q*2.3 - t), fbm(q*2.3 + vec2(5.3) + t));
+
+  float n = fbm(q*1.1 + vec2(t*0.7, 0.0));
+  float bands = 0.5 + 0.5*sin(p.y*2.4 + n*5.5 + u_time*0.35);
+
+  vec3 cA = vec3(0.06, 0.10, 0.32);
+  vec3 cB = vec3(0.42, 0.18, 0.78);
+  vec3 cC = vec3(0.10, 0.80, 0.74);
+  vec3 cD = vec3(0.95, 0.55, 0.85);
+
+  vec3 col = mix(cA, cB, smoothstep(0.2, 0.85, n));
+  col = mix(col, cC, smoothstep(0.45, 0.95, bands)*0.7);
+  col = mix(col, cD, smoothstep(0.85, 1.0, n*bands)*0.6);
+
+  float shimmer = fbm(q*6.0 + u_time*0.6);
+  col += 0.10*shimmer*vec3(0.8, 0.95, 1.0);
+
+  float md = length(p - m);
+  col += 0.35 * exp(-md*2.5) * vec3(0.85, 0.95, 1.0);
+
+  float vlen = clamp(length(u_mouseVel)*8.0, 0.0, 1.0);
+  col += vlen * 0.10 * vec3(0.7, 0.85, 1.0) * exp(-md*1.5);
+
+  for(int i=0;i<8;i++){
+    vec2 cp = u_clicks[i].xy*2.0 - 1.0;
+    cp.x *= u_res.x/u_res.y;
+    float ct = u_time - u_clicks[i].z;
+    float w  = u_clicks[i].w;
+    if(ct > 0.0 && ct < 3.5 && w > 0.0){
+      float r = length(p - cp);
+      float rad = ct*0.55;
+      float ring = exp(-(r-rad)*(r-rad)*22.0) * exp(-ct*0.9);
+      col += ring * vec3(0.85, 0.95, 1.0) * 1.2 * w;
+      col += w * 0.18 * exp(-r*2.5) * exp(-ct*1.6) * vec3(0.9,0.8,1.0);
+    }
+  }
+
+  float v = smoothstep(1.6, 0.4, length(p));
+  col *= mix(0.78, 1.05, v);
+
+  float g = (hash(gl_FragCoord.xy + u_time) - 0.5) * 0.025;
+  col += g;
+
+  gl_FragColor = vec4(col, 1.0);
+}
+</script>
+
+<script>
+(() => {
+  const canvas = document.getElementById("gl");
+  const gl = canvas.getContext("webgl", {
+    antialias: false, alpha: false,
+    premultipliedAlpha: false, preserveDrawingBuffer: false
+  });
+  if (!gl) return;
+
+  let DPR = Math.min(window.devicePixelRatio || 1, 2);
+
+  function resize() {
+    DPR = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width  = Math.floor(window.innerWidth  * DPR);
+    canvas.height = Math.floor(window.innerHeight * DPR);
+    gl.viewport(0, 0, canvas.width, canvas.height);
+  }
+  window.addEventListener("resize", resize);
+  resize();
+
+  function compile(type, src) {
+    const sh = gl.createShader(type);
+    gl.shaderSource(sh, src);
+    gl.compileShader(sh);
+    return sh;
+  }
+
+  const prog = (() => {
+    const vs = compile(gl.VERTEX_SHADER,   document.getElementById("vs").textContent);
+    const fs = compile(gl.FRAGMENT_SHADER, document.getElementById("fs").textContent);
+    const p  = gl.createProgram();
+    gl.attachShader(p, vs);
+    gl.attachShader(p, fs);
+    gl.linkProgram(p);
+    return p;
+  })();
+
+  const locs = {
+    a_pos:      gl.getAttribLocation(prog,  "a_pos"),
+    u_res:      gl.getUniformLocation(prog, "u_res"),
+    u_mouse:    gl.getUniformLocation(prog, "u_mouse"),
+    u_mouseVel: gl.getUniformLocation(prog, "u_mouseVel"),
+    u_time:     gl.getUniformLocation(prog, "u_time"),
+    u_clicks:   gl.getUniformLocation(prog, "u_clicks[0]"),
+  };
+
+  const buf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+    -1,-1, 1,-1, -1,1,
+    -1, 1, 1,-1,  1,1,
+  ]), gl.STATIC_DRAW);
+
+  const state = {
+    mouse: { x: 0.5, y: 0.5 },
+    raw:   { x: 0.5, y: 0.5 },
+    vel:   { x: 0, y: 0 },
+    clicks: new Float32Array(8 * 4),
+    slot: 0,
+    start: performance.now() / 1000,
+    last: 0,
+  };
+
+  function trackMouse(e) {
+    const t = e.touches ? e.touches[0] : e;
+    state.raw.x = t.clientX / window.innerWidth;
+    state.raw.y = 1 - t.clientY / window.innerHeight;
+  }
+  window.addEventListener("mousemove", trackMouse, { passive: true });
+  window.addEventListener("touchmove", trackMouse, { passive: true });
+
+  function recordClick(nx, ny) {
+    const t = performance.now() / 1000 - state.start;
+    const i = state.slot * 4;
+    state.clicks[i]   = nx;
+    state.clicks[i+1] = ny;
+    state.clicks[i+2] = t;
+    state.clicks[i+3] = 1.0;
+    state.slot = (state.slot + 1) % 8;
+  }
+  canvas.addEventListener("mousedown", (e) => {
+    recordClick(e.clientX / window.innerWidth, 1 - e.clientY / window.innerHeight);
+  });
+  canvas.addEventListener("touchstart", (e) => {
+    const t = e.touches[0];
+    recordClick(t.clientX / window.innerWidth, 1 - t.clientY / window.innerHeight);
+  }, { passive: true });
+
+  function render(nowMs) {
+    const now = nowMs / 1000;
+    const dt  = Math.min(0.05, now - (state.last || now));
+    state.last = now;
+
+    const lerp = 1 - Math.pow(0.001, dt);
+    const dx = state.raw.x - state.mouse.x;
+    const dy = state.raw.y - state.mouse.y;
+    state.mouse.x += dx * lerp;
+    state.mouse.y += dy * lerp;
+    state.vel.x = state.vel.x * 0.9 + dx * 0.3;
+    state.vel.y = state.vel.y * 0.9 + dy * 0.3;
+
+    gl.useProgram(prog);
+    gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+    gl.enableVertexAttribArray(locs.a_pos);
+    gl.vertexAttribPointer(locs.a_pos, 2, gl.FLOAT, false, 0, 0);
+
+    gl.uniform2f(locs.u_res, canvas.width, canvas.height);
+    gl.uniform2f(locs.u_mouse, state.mouse.x, state.mouse.y);
+    gl.uniform2f(locs.u_mouseVel, state.vel.x, state.vel.y);
+    gl.uniform1f(locs.u_time, now - state.start);
+    gl.uniform4fv(locs.u_clicks, state.clicks);
+
+    gl.drawArrays(gl.TRIANGLES, 0, 6);
+    requestAnimationFrame(render);
+  }
+  requestAnimationFrame(render);
+})();
+
+function handleSubmit() {
+  const input = document.getElementById("emailInput");
+  const email = input.value.trim();
+  if (!email || !email.includes("@")) {
+    input.focus();
+    input.style.borderColor = "rgba(255,100,100,0.7)";
+    setTimeout(() => { input.style.borderColor = ""; }, 1500);
+    return;
+  }
+  document.getElementById("formArea").style.display = "none";
+  document.getElementById("successMsg").style.display = "block";
+}
+
+// Enter key support
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("emailInput").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") handleSubmit();
+  });
+});
+</script>
+</body>
+</html>
