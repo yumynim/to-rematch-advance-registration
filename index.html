@@ -38,7 +38,7 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 80px 24px 60px;
+    padding: 72px 24px 40px;
   }
 
   /* ── Nav ── */
@@ -269,46 +269,84 @@
     line-height: 1.7;
   }
 
-  /* ── Footer area ── */
-  .hero-footer {
-    margin-top: 48px;
+  /* ── Tagline / spacing ── */
+  .tagline { margin-bottom: 20px; }
+  .sub     { display: none; }
+
+  /* ── Feature list ── */
+  .features {
+    list-style: none;
+    width: 100%;
+    max-width: 480px;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    gap: 16px;
+    gap: 10px;
+    margin-bottom: 20px;
+    text-align: left;
   }
 
-  .stat-row {
+  .features li {
     display: flex;
-    gap: 40px;
-    flex-wrap: wrap;
-    justify-content: center;
+    align-items: flex-start;
+    gap: 12px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 13px;
+    color: rgba(255,255,255,0.7);
+    line-height: 1.55;
   }
 
-  .stat {
+  .features li strong { color: #fff; }
+
+  .feat-icon {
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    background: rgba(99,102,241,0.18);
+    border: 1px solid rgba(99,102,241,0.3);
+    border-radius: 7px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 900;
+    color: rgba(160,140,255,0.9);
+    font-family: 'Inter', sans-serif;
+    margin-top: 1px;
+  }
+
+  /* ── Perk banner ── */
+  .perk-banner {
+    width: 100%;
+    max-width: 480px;
+    background: rgba(99,102,241,0.10);
+    border: 1px solid rgba(99,102,241,0.28);
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 13px;
+    color: rgba(200,190,255,0.9);
+    line-height: 1.5;
+    margin-bottom: 20px;
     text-align: center;
   }
 
-  .stat-num {
-    font-family: 'Inter', sans-serif;
-    font-size: 24px;
-    font-weight: 900;
-    color: rgba(255,255,255,0.9);
-    letter-spacing: -0.02em;
-    line-height: 1;
+  .perk-banner strong { color: #fff; }
+
+  /* ── Footer area ── */
+  .hero-footer {
+    margin-top: 20px;
   }
 
-  .stat-num span {
-    font-size: 13px;
-    font-weight: 600;
-    color: rgba(160,130,255,0.9);
-  }
-
-  .stat-label {
-    font-size: 11px;
-    color: rgba(255,255,255,0.35);
-    margin-top: 5px;
+  .release-date {
+    font-size: 12px;
+    color: rgba(255,255,255,0.32);
     letter-spacing: 0.04em;
+  }
+
+  .release-date strong {
+    color: rgba(255,255,255,0.55);
   }
 
   /* ── 3D Rotating Cubes ── */
@@ -370,41 +408,6 @@
 
 <canvas id="gl"></canvas>
 
-<!-- キューブA: 右下（120px、はみ出し配置） -->
-<div class="cube-anchor" style="right:-32px; bottom:72px; filter:drop-shadow(0 8px 32px rgba(99,102,241,0.35));" aria-hidden="true">
-  <div class="cube-float">
-    <div class="cube-box" style="width:120px;height:120px;animation:cube-spin-a 9s linear infinite;perspective:600px;">
-      <!-- 前面: AppIcon -->
-      <div class="cube-face" style="width:120px;height:120px;border-radius:26px;transform:translateZ(60px);">
-        <svg width="120" height="120" viewBox="0 0 180 180" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <linearGradient id="ca-bg" x1="20%" y1="0%" x2="80%" y2="100%"><stop offset="0%" stop-color="#0f0c29"/><stop offset="60%" stop-color="#1a1750"/><stop offset="100%" stop-color="#2a2770"/></linearGradient>
-            <radialGradient id="ca-gl" cx="50%" cy="62%" r="55%"><stop offset="0%" stop-color="#4338ca" stop-opacity="0.18"/><stop offset="100%" stop-color="#4338ca" stop-opacity="0"/></radialGradient>
-            <linearGradient id="ca-c1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#4f46e5"/><stop offset="100%" stop-color="#312e81"/></linearGradient>
-            <linearGradient id="ca-c2" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#6366f1"/><stop offset="100%" stop-color="#4338ca"/></linearGradient>
-          </defs>
-          <rect width="180" height="180" rx="40" fill="url(#ca-bg)"/>
-          <rect width="180" height="180" rx="40" fill="url(#ca-gl)"/>
-          <rect x="24" y="28" width="132" height="22" rx="7" fill="white"/>
-          <rect x="75" y="38" width="30" height="56" rx="7" fill="white"/>
-          <g transform="rotate(-12,72,126)"><rect x="26" y="104" width="92" height="124" rx="13" fill="url(#ca-c1)"/><rect x="40" y="120" width="64" height="4" rx="2" fill="white" opacity="0.25"/><rect x="40" y="130" width="48" height="3.5" rx="1.75" fill="white" opacity="0.17"/><rect x="40" y="139" width="54" height="3.5" rx="1.75" fill="white" opacity="0.12"/></g>
-          <g transform="rotate(12,108,126)"><rect x="62" y="104" width="92" height="124" rx="13" fill="url(#ca-c2)"/><rect x="76" y="120" width="64" height="4" rx="2" fill="white" opacity="0.28"/><rect x="76" y="130" width="48" height="3.5" rx="1.75" fill="white" opacity="0.18"/><rect x="76" y="139" width="54" height="3.5" rx="1.75" fill="white" opacity="0.13"/></g>
-        </svg>
-      </div>
-      <!-- 後面 -->
-      <div class="cube-face" style="width:120px;height:120px;border-radius:26px;transform:rotateY(180deg) translateZ(60px);background:linear-gradient(145deg,#1a1750,#0f0c29);"></div>
-      <!-- 右面 -->
-      <div class="cube-face" style="width:120px;height:120px;border-radius:26px;transform:rotateY(90deg) translateZ(60px);background:linear-gradient(180deg,#2a2770,#0f0c29);"></div>
-      <!-- 左面 -->
-      <div class="cube-face" style="width:120px;height:120px;border-radius:26px;transform:rotateY(-90deg) translateZ(60px);background:linear-gradient(180deg,#312e81,#1a1750);"></div>
-      <!-- 上面 -->
-      <div class="cube-face" style="width:120px;height:120px;border-radius:26px;transform:rotateX(90deg) translateZ(60px);background:linear-gradient(135deg,#4f46e5,#312e81);"></div>
-      <!-- 下面 -->
-      <div class="cube-face" style="width:120px;height:120px;border-radius:26px;transform:rotateX(-90deg) translateZ(60px);background:linear-gradient(135deg,#0f0c29,#1a1750);"></div>
-    </div>
-  </div>
-</div>
-
 <!-- キューブB: 左上（85px、はみ出し配置・逆回転） -->
 <div class="cube-anchor" style="left:-22px; top:110px; filter:drop-shadow(0 6px 24px rgba(99,102,241,0.28));" aria-hidden="true">
   <div class="cube-float-slow">
@@ -456,12 +459,27 @@
 
     <p class="tagline">
       <strong>欲しいものと、あげたいものが出会う。</strong><br>
-      新感覚の物々交換マッチングサービス
+      お金を使わない、グッズ物々交換マッチングアプリ
     </p>
-    <p class="sub">
-      お金を使わずに、モノとモノを交換する新しい体験。<br>
-      リリースに先駆けて先行登録すると、優先招待&amp;特典をお届けします。
-    </p>
+
+    <ul class="features">
+      <li>
+        <span class="feat-icon">¥0</span>
+        <span><strong>完全無料で交換</strong> — お金のやり取りなし。持っているグッズと欲しいグッズをマッチング。</span>
+      </li>
+      <li>
+        <span class="feat-icon">⚡</span>
+        <span><strong>自動でマッチング</strong> — 登録したら待つだけ。相互に条件が合った瞬間に通知が届く。</span>
+      </li>
+      <li>
+        <span class="feat-icon">𝕏</span>
+        <span><strong>XのDMで交換成立</strong> — マッチ後は相手のアカウントが開示。DM一通で話が進む。</span>
+      </li>
+    </ul>
+
+    <div class="perk-banner">
+      🎁 <strong>先行登録者限定</strong> — ベータ版への優先招待 &amp; リリース記念の特典をお届けします
+    </div>
 
     <div class="glass-card">
       <div id="formArea">
@@ -490,20 +508,7 @@
     </div>
 
     <div class="hero-footer">
-      <div class="stat-row">
-        <div class="stat">
-          <div class="stat-num">0 <span>→ ∞</span></div>
-          <div class="stat-label">円で交換できる</div>
-        </div>
-        <div class="stat">
-          <div class="stat-num">先着<span>限定</span></div>
-          <div class="stat-label">特典付き先行招待</div>
-        </div>
-        <div class="stat">
-          <div class="stat-num">2026<span>年</span></div>
-          <div class="stat-label">リリース予定</div>
-        </div>
-      </div>
+      <p class="release-date">🚀 リリース予定：<strong>2026年6月中旬</strong></p>
     </div>
   </div>
 </div>
